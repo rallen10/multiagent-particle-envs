@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 from gym.envs.registration import EnvSpec
 import numpy as np
-from multiagent.multi_discrete import MultiDiscrete
+from multiagent.multi_discrete import MultiDiscreteLegacy
 
 # environment for all agents in the multiagent world
 # currently code assumes that no agents will be created/destroyed at runtime!
@@ -13,7 +13,7 @@ class MultiAgentEnv(gym.Env):
 
     def __init__(self, world, reset_callback=None, reward_callback=None,
                  observation_callback=None, info_callback=None,
-                 done_callback=None, shared_viewer=True):
+                 done_callback=None, shared_viewer=True, legacy_multidiscrete=True):
 
         self.world = world
         self.agents = self.world.policy_agents
@@ -56,9 +56,12 @@ class MultiAgentEnv(gym.Env):
                 total_action_space.append(c_action_space)
             # total action space
             if len(total_action_space) > 1:
-                # all action spaces are discrete, so simplify to MultiDiscrete action space
+                # all action spaces are discrete, so simplify to MultiDiscreteLegacy action space
                 if all([isinstance(act_space, spaces.Discrete) for act_space in total_action_space]):
-                    act_space = MultiDiscrete([[0, act_space.n - 1] for act_space in total_action_space])
+                    if legacy_multidiscrete:
+                        act_space = MultiDiscreteLegacy([[0, act_space.n - 1] for act_space in total_action_space])
+                    else:
+                        act_space = spaces.MultiDiscrete([[0, act_space.n - 1] for act_space in total_action_space])
                 else:
                     act_space = spaces.Tuple(total_action_space)
                 self.action_space.append(act_space)
@@ -145,7 +148,7 @@ class MultiAgentEnv(gym.Env):
         agent.action.u = np.zeros(self.world.dim_p)
         agent.action.c = np.zeros(self.world.dim_c)
         # process action
-        if isinstance(action_space, MultiDiscrete):
+        if isinstance(action_space, MultiDiscreteLegacy):
             act = []
             size = action_space.high - action_space.low + 1
             index = 0

@@ -6,7 +6,7 @@ import numpy as np
 import gym
 from gym.spaces import prng
 
-class MultiDiscrete(gym.Space):
+class MultiDiscreteLegacy(gym.Space):
     """
     - The multi-discrete action space consists of a series of discrete action spaces with different parameters
     - It can be adapted to both a Discrete action space or a continuous (Box) action space
@@ -20,7 +20,7 @@ class MultiDiscrete(gym.Space):
         2) Button A:   Discrete 2  - NOOP[0], Pressed[1] - params: min: 0, max: 1
         3) Button B:   Discrete 2  - NOOP[0], Pressed[1] - params: min: 0, max: 1
     - Can be initialized as
-        MultiDiscrete([ [0,4], [0,1], [0,1] ])
+        MultiDiscreteLegacy([ [0,4], [0,1], [0,1] ])
     """
     def __init__(self, array_of_param_array):
         self.low = np.array([x[0] for x in array_of_param_array])
@@ -39,6 +39,6 @@ class MultiDiscrete(gym.Space):
     def shape(self):
         return self.num_discrete_space
     def __repr__(self):
-        return "MultiDiscrete" + str(self.num_discrete_space)
+        return "MultiDiscreteLegacy" + str(self.num_discrete_space)
     def __eq__(self, other):
         return np.array_equal(self.low, other.low) and np.array_equal(self.high, other.high)
