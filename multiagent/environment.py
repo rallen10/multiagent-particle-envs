@@ -13,7 +13,9 @@ class MultiAgentEnv(gym.Env):
 
     def __init__(self, world, reset_callback=None, reward_callback=None,
                  observation_callback=None, info_callback=None,
-                 done_callback=None, shared_viewer=True, legacy_multidiscrete=True):
+                 done_callback=None, shared_viewer=True, 
+                 discrete_action_space=True,
+                 legacy_multidiscrete=True):
 
         self.world = world
         self.agents = self.world.policy_agents
@@ -26,7 +28,7 @@ class MultiAgentEnv(gym.Env):
         self.info_callback = info_callback
         self.done_callback = done_callback
         # environment parameters
-        self.discrete_action_space = True
+        self.discrete_action_space = discrete_action_space
         # if true, action is a number 0...N, otherwise action is a one-hot N-dimensional vector
         self.discrete_action_input = False
         # if true, even the action is continuous, action will be performed discretely
@@ -53,7 +55,10 @@ class MultiAgentEnv(gym.Env):
             else:
                 c_action_space = spaces.Box(low=0.0, high=1.0, shape=(world.dim_c,), dtype=np.float32)
             if not agent.silent:
-                total_action_space.append(c_action_space)
+                if hasattr(agent, 'passive_communication') and agent.passive_communication:
+                    pass # don't add comm to action space
+                else:
+                    total_action_space.append(c_action_space)
             # total action space
             if len(total_action_space) > 1:
                 # all action spaces are discrete, so simplify to MultiDiscreteLegacy action space
@@ -61,7 +66,7 @@ class MultiAgentEnv(gym.Env):
                     if legacy_multidiscrete:
                         act_space = MultiDiscreteLegacy([[0, act_space.n - 1] for act_space in total_action_space])
                     else:
-                        act_space = spaces.MultiDiscrete([[0, act_space.n - 1] for act_space in total_action_space])
+                        act_space = spaces.MultiDiscrete([act_space.n for act_space in total_action_space])
                 else:
                     act_space = spaces.Tuple(total_action_space)
                 self.action_space.append(act_space)
@@ -184,13 +189,16 @@ class MultiAgentEnv(gym.Env):
             agent.action.u *= sensitivity
             action = action[1:]
         if not agent.silent:
-            # communication action
-            if self.discrete_action_input:
-                agent.action.c = np.zeros(self.world.dim_c)
-                agent.action.c[action[0]] = 1.0
+            if hasattr(agent, 'passive_communication') and agent.passive_communication:
+                pass
             else:
-                agent.action.c = action[0]
-            action = action[1:]
+                # communication action
+                if self.discrete_action_input:
+                    agent.action.c = np.zeros(self.world.dim_c)
+                    agent.action.c[action[0]] = 1.0
+                else:
+                    agent.action.c = action[0]
+                action = action[1:]
         # make sure we used all elements of action
         assert len(action) == 0
 
