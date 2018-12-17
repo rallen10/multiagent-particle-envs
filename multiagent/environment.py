@@ -181,9 +181,10 @@ class MultiAgentEnv(gym.Env):
                 if self.discrete_action_space:
                     agent.action.u[0] += action[0][1] - action[0][2]
                     agent.action.u[1] += action[0][3] - action[0][4]
+                    sensitivity = 5.0
                 else:
                     agent.action.u = action[0]
-            sensitivity = 5.0
+                    sensitivity = 1.0
             if agent.accel is not None:
                 sensitivity = agent.accel
             agent.action.u *= sensitivity
