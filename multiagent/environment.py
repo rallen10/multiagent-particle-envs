@@ -35,6 +35,21 @@ class MultiAgentEnv(gym.Env):
         self.force_discrete_action = world.discrete_action if hasattr(world, 'discrete_action') else False
         # if true, every agent has the same reward
         self.shared_reward = world.collaborative if hasattr(world, 'collaborative') else False
+
+        # it is possible to have a collaborative world where rewards depend on other agents
+        # (i.e. systemic rewards), yet have different groups of agents receive different
+        # rewards, thus we have an additional descriptor that can trump just the collaborative
+        # descriptor
+        if hasattr(world, 'identical_rewards'):
+            # the identical_rewards bool trumps all, if present
+            self.shared_reward = world.identical_rewards
+
+        # boolean for if reward structure is systemic, which is similar yet distinct from shared_rewards
+        # shared rewards are just a sum over all individual rewards recieved. Systemic rewards
+        # is more general, i.e. no individual may actually recieve a reward, but the system
+        # as a whole produces some reward
+        self.systemic_rewards = world.systemic_rewards if hasattr(world, 'systemic_rewards') else False
+
         self.time = 0
 
         # configure spaces
