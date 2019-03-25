@@ -138,6 +138,16 @@ class MultiAgentEnv(gym.Env):
             obs_n.append(self._get_obs(agent))
         return obs_n
 
+    def get_joint_state(self):
+        ''' returns global/centralized/joint/(whatever you want to call it) state of all entities in the world '''
+        global_state = []
+        for ent in self.world.entities:
+            ent_state = np.concatenate((ent.state.p_pos, ent.state.p_vel))
+            if hasattr(ent.state, 'c'):
+                ent_state = np.concatenate((ent_state, ent.state.c))
+            global_state.append(ent_state)
+        return global_state 
+
     # get info used for benchmarking
     def _get_info(self, agent):
         if self.info_callback is None:
