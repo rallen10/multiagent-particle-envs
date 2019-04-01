@@ -143,8 +143,8 @@ class MultiAgentEnv(gym.Env):
         global_state = []
         for ent in self.world.entities:
             ent_state = np.concatenate((ent.state.p_pos, ent.state.p_vel))
-            if hasattr(ent.state, 'c'):
-                ent_state = np.concatenate((ent_state, ent.state.c))
+            # Note: communications are not captured in the global state because they are consider a form
+            # of an action, which is also not considered part of the state
             global_state.append(ent_state)
         return global_state 
 
