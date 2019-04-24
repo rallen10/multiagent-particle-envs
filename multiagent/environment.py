@@ -141,12 +141,17 @@ class MultiAgentEnv(gym.Env):
     def get_joint_state(self):
         ''' returns global/centralized/joint/(whatever you want to call it) state of all entities in the world '''
         global_state = []
+        labels = []
         for ent in self.world.entities:
             ent_state = np.concatenate((ent.state.p_pos, ent.state.p_vel))
             # Note: communications are not captured in the global state because they are consider a form
             # of an action, which is also not considered part of the state
             global_state.append(ent_state)
-        return global_state 
+
+            # capture labels
+            labels.append(ent.name)
+
+        return {"state": global_state, "labels": labels} 
 
     # get info used for benchmarking
     def _get_info(self, agent):
